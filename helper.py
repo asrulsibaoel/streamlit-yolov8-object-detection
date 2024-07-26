@@ -1,8 +1,35 @@
+import threading
+from threading import Lock
+
 from ultralytics import YOLO
 import streamlit as st
 import cv2
 import yt_dlp
 import settings
+
+
+class Camera:
+    last_frame = None
+    last_ready = None
+    lock = Lock()
+
+    def __init__(self, rtsp_link: str):
+        capture = cv2.VideoCapture(rtsp_link)
+        thread = threading.Thread(target=self.rtsp_cam_buffer, args=(
+            capture,), name="rtsp_read_thread")
+        thread.daemon = True
+        thread.start()
+
+    def rtsp_cam_buffer(self, capture):
+        while True:
+            with self.lock:
+                self.last_ready, self.last_frame = capture.read()
+
+    def getFrame(self):
+        if (self.last_ready is not None) and (self.last_frame is not None):
+            return self.last_frame.copy()
+        else:
+            return None
 
 
 def load_model(model_path):
@@ -44,7 +71,7 @@ def _display_detected_frames(conf, model, st_frame, image, is_display_tracking=N
     """
 
     # Resize the image to a standard size
-    image = cv2.resize(image, (720, int(720*(9/16))))
+    # image = cv2.resize(image, (720, int(720*(9/16))))
 
     # Display object tracking, if specified
     if is_display_tracking:
@@ -135,26 +162,24 @@ def play_rtsp_stream(conf, model):
         'Example URL: rtsp://admin:12345@192.168.1.210:554/Streaming/Channels/101')
     is_display_tracker, tracker = display_tracker_options()
     if st.sidebar.button('Detect Objects'):
-        try:
-            vid_cap = cv2.VideoCapture(source_rtsp)
-            st_frame = st.empty()
-            while (vid_cap.isOpened()):
-                success, image = vid_cap.read()
-                if success:
-                    _display_detected_frames(conf,
-                                             model,
-                                             st_frame,
-                                             image,
-                                             is_display_tracker,
-                                             tracker
-                                             )
-                else:
-                    vid_cap.release()
-                    break
-        except Exception as e:
-            vid_cap.release()
-            st.sidebar.error("Error loading RTSP stream: " + str(e))
+        # try:
+        # vid_cap = cv2.VideoCapture(source_rtsp)
+        # vid_cap.set(cv2.CAP_PROP_FPS, 5.0)
+        # vid_cap = cv2.VideoCapture(source_rtsp, cv2.CAP_FFMPEG)
 
+        capture = Camera(source_rtsp)
+
+        st_frame = st.empty()
+
+        while True:
+            image = capture.getFrame()
+            _display_detected_frames(conf,
+                                     model,
+                                     st_frame,
+                                     image,
+                                     is_display_tracker,
+                                     tracker
+                                     )
 
 def play_webcam(conf, model):
     """

@@ -1,5 +1,8 @@
 # Python In-built packages
 from pathlib import Path
+
+import os
+
 import PIL
 
 # External packages
@@ -8,6 +11,8 @@ import streamlit as st
 # Local Modules
 import settings
 import helper
+
+# os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
 
 # Setting page layout
 st.set_page_config(
@@ -92,7 +97,7 @@ if source_radio == settings.IMAGE:
                             st.write(box.data)
                 except Exception as ex:
                     # st.write(ex)
-                    st.write("No image is uploaded yet!")
+                    st.write(f"No image is uploaded yet!: [Reason]: {str(ex)}")
 
 elif source_radio == settings.VIDEO:
     helper.play_stored_video(confidence, model)
