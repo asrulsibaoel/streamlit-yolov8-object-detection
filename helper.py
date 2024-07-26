@@ -71,7 +71,11 @@ def _display_detected_frames(conf, model, st_frame, image, is_display_tracking=N
     """
 
     # Resize the image to a standard size
-    # image = cv2.resize(image, (720, int(720*(9/16))))
+    try:
+        image = cv2.resize(image, (720, int(720*(9/16))))
+    except Exception as e:
+        print("Can't resize the frame. Returning to default size. Reason:", str(e))
+        image = image
 
     # Display object tracking, if specified
     if is_display_tracking:
@@ -162,10 +166,6 @@ def play_rtsp_stream(conf, model):
         'Example URL: rtsp://admin:12345@192.168.1.210:554/Streaming/Channels/101')
     is_display_tracker, tracker = display_tracker_options()
     if st.sidebar.button('Detect Objects'):
-        # try:
-        # vid_cap = cv2.VideoCapture(source_rtsp)
-        # vid_cap.set(cv2.CAP_PROP_FPS, 5.0)
-        # vid_cap = cv2.VideoCapture(source_rtsp, cv2.CAP_FFMPEG)
 
         capture = Camera(source_rtsp)
 
@@ -180,6 +180,7 @@ def play_rtsp_stream(conf, model):
                                      is_display_tracker,
                                      tracker
                                      )
+
 
 def play_webcam(conf, model):
     """
@@ -237,10 +238,10 @@ def play_stored_video(conf, model):
 
     is_display_tracker, tracker = display_tracker_options()
 
-    with open(settings.VIDEOS_DICT.get(source_vid), 'rb') as video_file:
-        video_bytes = video_file.read()
-    if video_bytes:
-        st.video(video_bytes)
+    # with open(settings.VIDEOS_DICT.get(source_vid), 'rb') as video_file:
+    #     video_bytes = video_file.read()
+    # if video_bytes:
+    #     st.video(video_bytes)
 
     if st.sidebar.button('Detect Video Objects'):
         try:
