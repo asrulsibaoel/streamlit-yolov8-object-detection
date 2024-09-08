@@ -1,0 +1,11 @@
+alembic
+lapx
+opencv-python
+python-dotenv
+pytube
+requests
+streamlit
+streamlit-webrtc
+ultralytics
+uvicorn
+yt-dlp
