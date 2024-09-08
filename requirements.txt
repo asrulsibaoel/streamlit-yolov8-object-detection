@@ -1,3 +1,4 @@
+alembic
 lapx
 opencv-python
 python-dotenv
